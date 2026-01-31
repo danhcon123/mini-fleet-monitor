@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { TokenService } from '../application/tokenService';
+import { TokenService } from '../application/token.service';
 import { logger } from '../../../shared/logger';
 
 // Extend Express Request to include user info

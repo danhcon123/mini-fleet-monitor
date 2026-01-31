@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { logger } from '../../../shared/logger';
 import { Pool } from 'pg';
-import { TokenService } from '../application/tokenService';
+import { TokenService } from '../application/token.service';
 
 export class AuthController {
     constructor(private db: Pool) {}
