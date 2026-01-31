@@ -27,7 +27,7 @@ export class PositionController {
         try {
             const id = Number(req.params.id);
             
-            if (isNaN(id)){
+            if (!Number.isInteger(id)){
                 res.status(400).json({error: 'Invalid robot ID'})
                 return;
             }
@@ -54,7 +54,7 @@ export class PositionController {
         try {
             const id = Number(req.params.id);
 
-            if (Number.isInteger(id)) {
+            if (!Number.isInteger(id)) {
                 res.status(400).json({error: 'Invalid robot ID' });
                 return;
             }

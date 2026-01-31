@@ -11,7 +11,7 @@ export class PositionRepository implements IPositionRepository{
             const result = await this.db.query<Robot>(
                 `SELECT id, name, status, lat, lon, updated_at FROM robots ORDER BY id`
             );
-            return result.rows;
+            return result.rows.map(row => this.toRobot(row));
         } catch (error) {
             logger.error('[PositionRepository] Error fetching robots from database', error);
             throw error;
@@ -24,7 +24,7 @@ export class PositionRepository implements IPositionRepository{
                 `SELECT id, name, status, lat, lon, updated_at FROM robots WHERE id = $1`,
                 [id]
             )
-            return result.rows[0] || null;
+            return result.rows[0] ? this.toRobot(result.rows[0]) : null;
         } catch (error) {
             logger.error('[PositionRepository] Error get robot by ID', error);
             throw error;
@@ -44,10 +44,18 @@ export class PositionRepository implements IPositionRepository{
                 logger.debug('[PositionRepository] Robot position updated in database', { robotId: id });
             }
 
-            return result.rows[0] || null;
+            return result.rows[0] ? this.toRobot(result.rows[0]) : null;
         } catch (error) {
             logger.error('[PositionRepository] Error updating robot position', error);
             throw error;
         }
+    }
+
+    private toRobot(row:any): Robot {
+        return {
+            ...row,
+            lat: parseFloat(row.lat),
+            lon: parseFloat(row.lon),
+        };
     }
 }
