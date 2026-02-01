@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { TokenService } from '../application/token.service';
+import { AuthHelper } from '../application/auth-helper.service';
 import { logger } from '../../../shared/logger';
 
 // Extend Express Request to include user info
@@ -21,31 +21,22 @@ export const authMiddleware = (
 ) : void => {
     try {
         // Extract token from Authorization header (format: "Bearer <token>")
-        const authHeader = req.headers.authorization;
+        const authResult = AuthHelper.authenticateFromHeader(req.headers.authorization)
 
-        if (!authHeader) {
-            res.status(401).json({ error: 'No authorization header provided' });
+        if (!authResult.success) {
+            res.status(401).json({ error: authResult.error || 'Authentication failed' });
             return;
         }
 
-        const parts = authHeader.split(' ');
+        logger.debug('[authMiddleware] Token verified', { 
+            userId: authResult.userId, 
+            email: authResult.email 
+        });
 
-        if (parts.length !== 2 || parts[0] !== 'Bearer') {
-            res.status(401).json({ error: 'Invalid authorization header format. Use: Bearer <token>' });
-            return;
-        }
-
-        const token = parts[1];
-
-        // Verify token and extract payload
-        const decoded = TokenService.verifyToken(token);
-        
-        logger.debug('[authMiddleware] Token verified', { userId: decoded.userId, email: decoded.email });
-        
         // Attach user info to request object
         req.user = {
-            userId: decoded.userId,
-            email: decoded.email,
+            userId: authResult.userId!,
+            email: authResult.email!,
         };
 
         next();

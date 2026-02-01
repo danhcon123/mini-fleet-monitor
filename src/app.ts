@@ -1,11 +1,12 @@
 import express from 'express';
 import cors from 'cors';
-
+import http from 'http';
+import { Pool } from 'pg';
 import { createPositionRoutes } from './modules/robot/api/robot-position.router';
 import { createAuthRoutes } from './modules/auth/api/auth.router';
 import { logger } from './shared/logger';
 import { db, dbHealth } from './config/database';
-import { Pool } from 'pg';
+
 
 export function createApp(dbPool: Pool = db) {
     const app = express();
