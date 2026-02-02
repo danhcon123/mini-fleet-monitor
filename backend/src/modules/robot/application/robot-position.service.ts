@@ -110,9 +110,9 @@ export class PositionService{
             });
             
             await redisClient.publish(REDIS_CHANNEL, message);
-            logger.debug('Published position update to Redis', { robotId: robot.id })
+            logger.debug('[PositionService] Published position update to Redis', { robotId: robot.id })
         } catch (error) {
-            logger.error('Error publishing to Redis', error)
+            logger.error('[PositionService] Error publishing to Redis', error)
         }
     }
 }

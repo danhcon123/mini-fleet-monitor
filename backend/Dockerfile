@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install Dependencies
 RUN npm ci
 
+# Build TypeScript (if you're compiling for production)
+RUN npm run build
+
 # Copy source code
 COPY . .
 
