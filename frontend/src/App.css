@@ -1,0 +1,183 @@
+/* Using your color palette */
+:root {
+  --primary: #6E0269;
+  --secondary: #ABDADC;
+  --cream: #F1E6C9;
+  --accent: #FA891A;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.app {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Header - always visible */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 1rem;  /* ✅ Moved gap here */
+  padding: 0 2rem;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.header-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+/* Login Overlay */
+.login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.login-card {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  min-width: 400px;
+  text-align: center;
+}
+
+.login-card h2 {
+  color: var(--primary);
+  margin: 0;  /* ✅ Updated to remove extra margin */
+}
+
+.login-card button {
+  margin-top: 1rem;
+  padding: 0.75rem 2rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;  /* ✅ Added for smooth hover */
+}
+
+.login-card button:hover {
+  background: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(250, 137, 26, 0.4);
+}
+
+/* Robot Sidebar */
+.robot-sidebar {
+  position: fixed;
+  top: 60px;
+  right: 0;
+  width: 350px;
+  height: calc(100vh - 60px);
+  background: var(--cream);
+  border-left: 2px solid var(--secondary);
+  padding: 1.5rem;
+  z-index: 100;
+  overflow-y: auto;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.robot-sidebar h2 {
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+/* Login Card Header */
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.login-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+/* Login Form Styles */
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.form-group input {
+  padding: 0.75rem;
+  border: 2px solid var(--secondary);
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Error Message */
+.error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: center;
+  border: 1px solid #fcc;
+}
+
+/* Demo Hint */
+.demo-hint {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--secondary);
+  color: #666;
+}
