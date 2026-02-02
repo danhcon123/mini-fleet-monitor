@@ -44,14 +44,16 @@ const MapComponent = ({ isBlurred, robots = []}) => {
                 return new Style({
                     image: new Icon({
                         src: '/images/robot.png',
-                        scale: 0.15, // 0.1 = 10%, 0.2 = 20%
-                        anchor: [0.5, 0.5],
+                        scale: 0.08, // 0.1 = 10%, 0.2 = 20%
+                        anchor: [0.5, 1], // horizontally centered (0.5), vertically at bottom (1)
+                        anchorXUnits: 'fraction',  
+                        anchorYUnits: 'fraction', 
                         opacity: isMoving ? 1: 0.7, // Slightly transparent when idle
                         crossOrigin: 'anonymous',
                     }),
                     text: new Text({
                         text: robot?.name || '',
-                        offsetY: -60,
+                        offsetY: -70,
                         fill: new Fill({
                             color: isMoving ? '#4CAF50' : '#FA891A', 
                         }),
@@ -59,7 +61,7 @@ const MapComponent = ({ isBlurred, robots = []}) => {
                             color: '#000',
                             width: 3,
                         }),
-                        font: 'bold 14px sans-serif',
+                        font: 'bold 12px sans-serif',
                     }),
                 });
             },
