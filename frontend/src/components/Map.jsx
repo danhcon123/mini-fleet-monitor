@@ -51,12 +51,12 @@ const MapComponent = ({ isBlurred, robots = []}) => {
                     }),
                     text: new Text({
                         text: robot?.name || '',
-                        offsetY: -35,
+                        offsetY: -60,
                         fill: new Fill({
                             color: isMoving ? '#4CAF50' : '#FA891A', 
                         }),
                         stroke: new Stroke({
-                            color: '#fff',
+                            color: '#000',
                             width: 3,
                         }),
                         font: 'bold 14px sans-serif',
