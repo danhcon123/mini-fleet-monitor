@@ -12,14 +12,51 @@ import {Style, Icon, Text, Fill, Stroke } from 'ol/style';
 import 'ol/ol.css';
 import './Map.css';
 
-const MapComponent = ({ isBlurred, robots = []}) => {
-    console.log('🔍 Props received:', { isBlurred, robots });  // ✅ Add this
-    console.log('🔍 Robots is array?', Array.isArray(robots));  // ✅ Add this
-    console.log('🔍 Robots length:', robots?.length);  // ✅ Add this
+const MapComponent = ({ isBlurred, robots = [], highlightedRobotId = null}) => {
+    console.log('🔍 Props received:', { isBlurred, robots, highlightedRobotId });
+    console.log('🔍 Robots is array?', Array.isArray(robots));
+    console.log('🔍 Robots length:', robots?.length);
     console.log('🔄 Map component rendered, robots count:', robots.length);
+    
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
     const vectorSourceRef = useRef(null);
+    const vectorLayerRef = useRef(null);
+    
+    // Create a style function that uses current highlightedRobotId
+    const getStyleForRobot = (feature) => {
+        const robot = feature.get('robot');
+        const isMoving = robot?.status === 'moving';
+        const isHighlighted = robot?.id === highlightedRobotId;
+        
+        if (isHighlighted) {
+        console.log('🎯 Highlighting robot on map:', robot?.name);
+        }
+
+        return new Style({
+        image: new Icon({
+            src: '/images/robot.png',
+            scale: isHighlighted ? 0.12 : 0.08,
+            anchor: [0.5, 1],
+            anchorXUnits: 'fraction',
+            anchorYUnits: 'fraction',
+            opacity: isMoving ? 1 : 0.7,
+            crossOrigin: 'anonymous',
+        }),
+        text: new Text({
+            text: robot?.name || '',
+            offsetY: isHighlighted ? -65 : -50,
+            fill: new Fill({
+            color: isHighlighted ? '#FF1744' : (isMoving ? '#4CAF50' : '#FA891A'),
+            }),
+            stroke: new Stroke({
+            color: '#fff',
+            width: isHighlighted ? 4 : 3,
+            }),
+            font: isHighlighted ? 'bold 16px sans-serif' : 'bold 12px sans-serif',
+        }),
+        });
+    };
 
     // Initialize map
     useEffect(() => {
@@ -35,16 +72,18 @@ const MapComponent = ({ isBlurred, robots = []}) => {
         // Create vector layer for robots
         const vectorLayer = new VectorLayer({
             source: vectorSourceRef.current,
-            style: (feature) => {
+            style: getStyleForRobot,
+            /* style: (feature) => {
                 const robot = feature.get('robot');
                 const isMoving = robot?.status === 'moving';
-                
-                console.log('Styling robot:', robot?.name, 'status:', robot?.status);
+                const isHighlighted = robot?.id === highlightedRobotId;
+
+                console.log('Styling robot:', robot?.name, 'status:', robot?.status, 'highlighted:', isHighlighted);
 
                 return new Style({
                     image: new Icon({
                         src: '/images/robot.png',
-                        scale: 0.08, // 0.1 = 10%, 0.2 = 20%
+                        scale: isHighlighted ? 0.12 : 0.08, // 0.1 = 10%, 0.2 = 20%
                         anchor: [0.5, 1], // horizontally centered (0.5), vertically at bottom (1)
                         anchorXUnits: 'fraction',  
                         anchorYUnits: 'fraction', 
@@ -53,19 +92,21 @@ const MapComponent = ({ isBlurred, robots = []}) => {
                     }),
                     text: new Text({
                         text: robot?.name || '',
-                        offsetY: -70,
+                        offsetY: isHighlighted ? -80 : -70,  // ✅ Adjust text position,
                         fill: new Fill({
                             color: isMoving ? '#4CAF50' : '#FA891A', 
                         }),
                         stroke: new Stroke({
                             color: '#000',
-                            width: 3,
+                            width: isHighlighted ? 4 : 3, // Thicker stroke when highlighted
                         }),
-                        font: 'bold 12px sans-serif',
+                        font: isHighlighted ? 'bold 16px sans-serif' : 'bold 12px sans-serif',
                     }),
                 });
-            },
+            },*/
         });
+
+        vectorLayerRef.current = vectorLayer; // Store layer reference
 
         // Create map
         mapInstanceRef.current = new Map({
@@ -127,18 +168,53 @@ const MapComponent = ({ isBlurred, robots = []}) => {
         // Add all features to the map
         vectorSourceRef.current.addFeatures(features);
         console.log('Added', features.length, 'features to map');
-        
-        // Center map on first robot (or calculate center of all robots)
-        const firstRobot = robots[0];
-        const view = mapInstanceRef.current.getView();
-        view.animate({
-            center: fromLonLat([firstRobot.lon, firstRobot.lat]),
-            zoom: 13,
-            duration: 1000,
-        })
-
         console.log('Robot markers updated');
     }, [robots])
+
+    // Center map only on initial robot load
+    useEffect(() => {
+        if (!mapInstanceRef.current || robots.length === 0) return;
+
+        // Check if this is the first time we have robots
+        const hasInitiallyPositioned = mapInstanceRef.current.get('initiallyPositioned');
+
+        if (!hasInitiallyPositioned) {
+            console.log('Initial positioning: centering on first robots');
+            const firstRobot = robots[0];
+            const view = mapInstanceRef.current.getView();
+            view.animate({
+                center: fromLonLat([firstRobot.lon, firstRobot.lat]),
+                zoom: 13,
+                duration: 1000,
+            });
+
+            // Mark as positioned
+            mapInstanceRef.current.set('initiallyPositioned', true);
+        }
+    }, [robots.length > 0]);
+
+    // Refresh styles when highlighted robot changes
+    useEffect(() => {
+        if (!vectorSourceRef.current|| !highlightedRobotId) return;
+
+        // Force re-render of all features to update styles
+        const features = vectorSourceRef.current.getFeatures();
+        features.forEach(feature => {
+            const robot = feature.get('robot');
+            if (robot?.id === highlightedRobotId) {
+                console.log('Found highlighted robot, forcing update');
+                feature.changed();
+            }
+        });
+
+        console.log('Refreshed robot styles, highlighted:', highlightedRobotId)
+        console.log('Highlighted robot changed:', highlightedRobotId);
+
+        // Also force the layer to refresh
+        if (vectorLayerRef.current) {
+            vectorLayerRef.current.getSource().changed();
+        }
+    }, [highlightedRobotId]);
 
     return (
         <div className="map-wrapper">

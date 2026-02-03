@@ -2,6 +2,7 @@ import { useState } from "react";
 import MapComponent from "./components/Map";
 import { authAPI } from "./services/api";
 import { robotAPI } from "./services/api";
+import wsService from "./services/websocket";
 import './App.css';
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [robots, setRobots] = useState([]);
     const [expandedRobotId, setExpandedRobotId] = useState(null);
+    const [highlightedRobotId, setHighlightedRobotId] = useState(null); 
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -21,9 +23,11 @@ function App() {
         const password = e.target.password.value;
 
         console.log('Attempting login with:', email);
+
         try {
             // Call the backend API
             const data = await authAPI.login(email, password);
+
             console.log('Login successful!');
             console.log('Response data:', data);
             console.log('Access token (first 50 chars):', data.access_token.substring(0, 50) + '...');
@@ -41,6 +45,33 @@ function App() {
 
             // Fetch robots after successful login
             await fetchRobots();
+
+            // Connect to WebSocket
+            console.log('Initiating WebSocket connection...');
+            wsService.connect(data.access_token);
+
+            // Set up position update handler
+            wsService.onPositionUpdate((updatedRobots) => {
+                console.log('Updating robots from WebSocket:', updatedRobots);
+
+                // Update the robots state with new positions
+                setRobots(prevRobots => {
+                    return prevRobots.map(robot => {
+                        const updated = updatedRobots.find(r => r.id === robot.id);
+                        if (updated) {
+                            console.log(`Robot ${robot.name} moved: [${updated.lat}, ${updated.lon}]`)
+                            return{
+                                ...robot,
+                                lat: updated.lat,
+                                lon: updated.lon,
+                                status: updated.status,
+                                updated_at: updated.updated_at
+                            };
+                        }
+                        return robot;
+                    });
+                });
+            });
         } catch (error) {
             console.error('Login failed:', error);
 
@@ -75,6 +106,30 @@ function App() {
         }
     };
 
+    const handleLogout = () => {
+        console.log('Logging out...');
+        wsService.disconnect(); // Disconnect WebSocket
+        localStorage.removeItem('token'); // Clear token
+        localStorage.removeItem('user'); // Clear user info
+        setIsAuthenticated(false); // Update UI state
+        setRobots([]); // Clear robots
+        console.log('Logged out successfully')
+    };
+
+    const handleRobotClick = (robotId) => {
+        console.log('Highlighting robot:', robotId);
+
+        // Toggle expand
+        setExpandedRobotId(expandedRobotId === robotId  ? null: robotId);
+
+        // Set highlight
+        setHighlightedRobotId(robotId);
+
+        // Auto-remove highlight after 3 seconds
+        setTimeout(() => {
+            setHighlightedRobotId(null);
+        }, 3000)
+    }
     return (
         <div className = "app">
             { /* Header always visible */}
@@ -89,6 +144,7 @@ function App() {
                 key={`map-${robots.length}`} 
                 isBlurred={!isAuthenticated}
                 robots={robots}
+                highlightedRobotId={highlightedRobotId}
             />
 
             {/** Login Overlay - shown when not authenticated */}
@@ -152,10 +208,11 @@ function App() {
                             {robots.map((robot) => (
                                 <div 
                                     key={robot.id}
-                                    className={`robot-item ${expandedRobotId === robot.id ? 'expanded' : ''}`}
-                                    onClick={() => setExpandedRobotId(
-                                        expandedRobotId === robot.id ? null : robot.id
-                                    )}
+                                    className={`robot-item ${expandedRobotId === robot.id ? 'expanded' : ''} ${highlightedRobotId === robot.id ? 'highlighted' : ''}`}                                   
+                                    //onClick={() => setExpandedRobotId(
+                                    //    expandedRobotId === robot.id ? null : robot.id
+                                    //)}
+                                    onClick={() => handleRobotClick(robot.id)}
                                 >
                                     {/* Always visible: Name and Status */}
                                     <div className="robot-header">

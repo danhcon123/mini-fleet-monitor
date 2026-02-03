@@ -222,6 +222,21 @@ body {
   box-shadow: 0 4px 12px rgba(110, 2, 105, 0.2)
 }
 
+.robot-item.highlighted {
+  animation: pulse 0.6s ease-in-out 3;
+  border-color: #6E0269;
+  box-shadow:  0 0 20px rgba(255, 23, 68, 0.5);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
 .robot-header {
   display: flex;
   justify-content: space-between;
