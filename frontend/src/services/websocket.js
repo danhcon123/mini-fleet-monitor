@@ -1,3 +1,5 @@
+import config from '../config';
+
 class WebSocketService {
     constructor() {
         this.ws = null;
@@ -12,8 +14,8 @@ class WebSocketService {
             console.log('WebSocket already connected');
             return;
         }
-        
-        const wsUrl = `ws://localhost:8080/ws?token=${token}`;
+
+        const wsUrl = `${config.WS_URL}/ws?token=${token}`;
         console.log('Connecting to WebSocket:', wsUrl);
 
         this.ws = new WebSocket(wsUrl);
