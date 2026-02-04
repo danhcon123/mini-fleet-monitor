@@ -1,4 +1,4 @@
-import { use, useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
@@ -12,10 +12,9 @@ import {Style, Icon, Text, Fill, Stroke } from 'ol/style';
 import 'ol/ol.css';
 import './Map.css';
 
+const ANIMATION_DURATION = 200; // ms, matches WebSocket update interval
+
 const MapComponent = ({ isBlurred, robots = [], highlightedRobotId = null, focusedRobot = null, onRobotClick = null }) => {
-    console.log('🔍 Props received:', { isBlurred, robots, highlightedRobotId });
-    console.log('🔍 Robots is array?', Array.isArray(robots));
-    console.log('🔍 Robots length:', robots?.length);
     console.log('🔄 Map component rendered, robots count:', robots.length);
 
     const mapRef = useRef(null);
@@ -23,7 +22,8 @@ const MapComponent = ({ isBlurred, robots = [], highlightedRobotId = null, focus
     const vectorSourceRef = useRef(null);
     const vectorLayerRef = useRef(null);
     const onRobotClickRef = useRef(onRobotClick);
-    
+    const animationsRef = useRef({}); // { robotId: animationFrameId }
+
     // Keep callback ref in sync to avoid stale closure in map click handler
     onRobotClickRef.current = onRobotClick;
 
@@ -83,37 +83,6 @@ const MapComponent = ({ isBlurred, robots = [], highlightedRobotId = null, focus
         const vectorLayer = new VectorLayer({
             source: vectorSourceRef.current,
             style: getStyleForRobot,
-            /* style: (feature) => {
-                const robot = feature.get('robot');
-                const isMoving = robot?.status === 'moving';
-                const isHighlighted = robot?.id === highlightedRobotId;
-
-                console.log('Styling robot:', robot?.name, 'status:', robot?.status, 'highlighted:', isHighlighted);
-
-                return new Style({
-                    image: new Icon({
-                        src: '/images/robot.png',
-                        scale: isHighlighted ? 0.12 : 0.08, // 0.1 = 10%, 0.2 = 20%
-                        anchor: [0.5, 1], // horizontally centered (0.5), vertically at bottom (1)
-                        anchorXUnits: 'fraction',  
-                        anchorYUnits: 'fraction', 
-                        opacity: isMoving ? 1: 0.7, // Slightly transparent when idle
-                        crossOrigin: 'anonymous',
-                    }),
-                    text: new Text({
-                        text: robot?.name || '',
-                        offsetY: isHighlighted ? -80 : -70,  // ✅ Adjust text position,
-                        fill: new Fill({
-                            color: isMoving ? '#4CAF50' : '#FA891A', 
-                        }),
-                        stroke: new Stroke({
-                            color: '#000',
-                            width: isHighlighted ? 4 : 3, // Thicker stroke when highlighted
-                        }),
-                        font: isHighlighted ? 'bold 16px sans-serif' : 'bold 12px sans-serif',
-                    }),
-                });
-            },*/
         });
 
         vectorLayerRef.current = vectorLayer; // Store layer reference
@@ -163,40 +132,84 @@ const MapComponent = ({ isBlurred, robots = [], highlightedRobotId = null, focus
         };
     }, []);
 
-    // Update robot markers when robot change
+    // Animate a feature from its current position to a new position
+    const animateFeature = useCallback((feature, targetCoords) => {
+        const robotId = feature.getId();
+
+        // Cancel any ongoing animation for this robot
+        if (animationsRef.current[robotId]) {
+            cancelAnimationFrame(animationsRef.current[robotId]);
+            delete animationsRef.current[robotId];
+        }
+
+        const geometry = feature.getGeometry();
+        const startCoords = geometry.getCoordinates();
+        const startTime = performance.now();
+
+        const step = (now) => {
+            const elapsed = now - startTime;
+            const t = Math.min(elapsed / ANIMATION_DURATION, 1);
+            // Ease-out for smooth deceleration
+            const eased = 1 - (1 - t) * (1 - t);
+
+            const currentX = startCoords[0] + (targetCoords[0] - startCoords[0]) * eased;
+            const currentY = startCoords[1] + (targetCoords[1] - startCoords[1]) * eased;
+            geometry.setCoordinates([currentX, currentY]);
+
+            if (t < 1) {
+                animationsRef.current[robotId] = requestAnimationFrame(step);
+            } else {
+                delete animationsRef.current[robotId];
+            }
+        };
+
+        animationsRef.current[robotId] = requestAnimationFrame(step);
+    }, []);
+
+    // Update robot markers in-place when robots change
     useEffect(() => {
         if (!vectorSourceRef.current || !mapInstanceRef.current) {
-            console.log('Vector source or map not ready');
             return;
         }
 
-        console.log('Updating robot markers, count:', robots.length);
-        console.log('Robots data:', robots);
+        const source = vectorSourceRef.current;
+        const currentIds = new Set(robots.map(r => r.id));
 
-        // Clear existing markers
-        vectorSourceRef.current.clear();
-
-        if (robots.length === 0) {
-        console.log('No robots to display');
-        return;
-        }
-
-        // Create features for each robot
-        const features = robots.map((robot) => {
-            console.log(`Creating marker for ${robot.name} at [${robot.lon}, ${robot.lat}]`);
-            const feature = new Feature({
-                geometry: new Point(fromLonLat([robot.lon, robot.lat])),
-                robot: robot,
-            });
-            feature.setId(robot.id);
-            return feature;
+        // Remove features for robots that no longer exist
+        const existingFeatures = source.getFeatures();
+        existingFeatures.forEach(feature => {
+            if (!currentIds.has(feature.getId())) {
+                // Cancel animation if running
+                const fid = feature.getId();
+                if (animationsRef.current[fid]) {
+                    cancelAnimationFrame(animationsRef.current[fid]);
+                    delete animationsRef.current[fid];
+                }
+                source.removeFeature(feature);
+            }
         });
 
-        // Add all features to the map
-        vectorSourceRef.current.addFeatures(features);
-        console.log('Added', features.length, 'features to map');
-        console.log('Robot markers updated');
-    }, [robots])
+        // Update existing or add new features
+        robots.forEach(robot => {
+            const targetCoords = fromLonLat([robot.lon, robot.lat]);
+            const existing = source.getFeatureById(robot.id);
+
+            if (existing) {
+                // Update the stored robot data for style function
+                existing.set('robot', robot);
+                // Animate to new position
+                animateFeature(existing, targetCoords);
+            } else {
+                // Create new feature
+                const feature = new Feature({
+                    geometry: new Point(targetCoords),
+                    robot: robot,
+                });
+                feature.setId(robot.id);
+                source.addFeature(feature);
+            }
+        });
+    }, [robots, animateFeature])
 
     // Center map only on initial robot load
     useEffect(() => {

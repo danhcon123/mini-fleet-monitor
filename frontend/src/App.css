@@ -306,6 +306,33 @@ body {
   font-family: 'Courier New', monospace;
 }
 
+/* Move Button */
+.move-button {
+  margin-top: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.move-button:hover:not(:disabled) {
+  background: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(250, 137, 26, 0.4);
+}
+
+.move-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #999;
+}
+
 /* Expand Hint */
 .expand-hint {
   margin-top: 0.75rem;

@@ -11,8 +11,9 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [robots, setRobots] = useState([]);
     const [expandedRobotId, setExpandedRobotId] = useState(null);
-    const [highlightedRobotId, setHighlightedRobotId] = useState(null); 
+    const [highlightedRobotId, setHighlightedRobotId] = useState(null);
     const [focusedRobot, setFocusedRobot] = useState(null);
+    const [movingRobotIds, setMovingRobotIds] = useState(new Set());
     const highlightTimerRef = useRef(null);
 
     const handleLogin = async (e) => {
@@ -151,6 +152,22 @@ function App() {
             highlightTimerRef.current = null;
         }, 3000);
     }
+
+    const handleMoveRobot = async (robotId) => {
+        setMovingRobotIds(prev => new Set(prev).add(robotId));
+        try {
+            await robotAPI.moveRobot(robotId);
+        } catch (error) {
+            console.error('Failed to move robot:', error);
+        } finally {
+            setMovingRobotIds(prev => {
+                const next = new Set(prev);
+                next.delete(robotId);
+                return next;
+            });
+        }
+    };
+
     return (
         <div className = "app">
             { /* Header always visible */}
@@ -162,7 +179,6 @@ function App() {
             {/* Map - always rendered, blurred when not authenticated */}
             {console.log('About to render Map, isAuthenticated:', isAuthenticated, 'robots:', robots)}
             <MapComponent
-                key={`map-${robots.length}`}
                 isBlurred={!isAuthenticated}
                 robots={robots}
                 highlightedRobotId={highlightedRobotId}
@@ -260,6 +276,16 @@ function App() {
                                             {new Date(robot.updated_at).toLocaleTimeString('de-DE')}
                                             </span>
                                         </div>
+                                        <button
+                                            className="move-button"
+                                            disabled={robot.status === 'moving' || movingRobotIds.has(robot.id)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleMoveRobot(robot.id);
+                                            }}
+                                        >
+                                            {movingRobotIds.has(robot.id) || robot.status === 'moving' ? 'Moving...' : 'Move'}
+                                        </button>
                                     </div>
                                     )}
 
