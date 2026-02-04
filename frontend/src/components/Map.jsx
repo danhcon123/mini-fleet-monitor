@@ -12,17 +12,21 @@ import {Style, Icon, Text, Fill, Stroke } from 'ol/style';
 import 'ol/ol.css';
 import './Map.css';
 
-const MapComponent = ({ isBlurred, robots = [], highlightedRobotId = null, focusedRobot = null }) => {
+const MapComponent = ({ isBlurred, robots = [], highlightedRobotId = null, focusedRobot = null, onRobotClick = null }) => {
     console.log('🔍 Props received:', { isBlurred, robots, highlightedRobotId });
     console.log('🔍 Robots is array?', Array.isArray(robots));
     console.log('🔍 Robots length:', robots?.length);
     console.log('🔄 Map component rendered, robots count:', robots.length);
-    
+
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
     const vectorSourceRef = useRef(null);
     const vectorLayerRef = useRef(null);
+    const onRobotClickRef = useRef(onRobotClick);
     
+    // Keep callback ref in sync to avoid stale closure in map click handler
+    onRobotClickRef.current = onRobotClick;
+
     // Create a style function that uses current highlightedRobotId
     const getStyleForRobot = (feature) => {
         const robot = feature.get('robot');
@@ -131,6 +135,23 @@ const MapComponent = ({ isBlurred, robots = [], highlightedRobotId = null, focus
                 maxZoom: 19,
                 constrainResolution: true,
             }),
+        });
+
+        // Click on robot feature → notify parent
+        mapInstanceRef.current.on('click', (evt) => {
+            const feature = mapInstanceRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
+            if (feature) {
+                const robot = feature.get('robot');
+                if (robot && onRobotClickRef.current) {
+                    onRobotClickRef.current(robot.id);
+                }
+            }
+        });
+
+        // Show pointer cursor when hovering over a robot
+        mapInstanceRef.current.on('pointermove', (evt) => {
+            const hit = mapInstanceRef.current.hasFeatureAtPixel(evt.pixel);
+            mapInstanceRef.current.getTargetElement().style.cursor = hit ? 'pointer' : '';
         });
 
         console.log('Map initialized');

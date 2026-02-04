@@ -134,6 +134,12 @@ function App() {
             setFocusedRobot({id: robotId, lat: robot.lat, lon: robot.lon, timestamp: Date.now()})
         }
 
+        // Scroll the sidebar row into view
+        const row = document.querySelector(`[data-robot-id="${robotId}"]`);
+        if (row) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
         // Clear any existing highlight timer
         if (highlightTimerRef.current) {
             clearTimeout(highlightTimerRef.current);
@@ -155,12 +161,13 @@ function App() {
             
             {/* Map - always rendered, blurred when not authenticated */}
             {console.log('About to render Map, isAuthenticated:', isAuthenticated, 'robots:', robots)}
-            <MapComponent 
-                key={`map-${robots.length}`} 
+            <MapComponent
+                key={`map-${robots.length}`}
                 isBlurred={!isAuthenticated}
                 robots={robots}
                 highlightedRobotId={highlightedRobotId}
                 focusedRobot={focusedRobot}
+                onRobotClick={handleRobotClick}
             />
 
             {/** Login Overlay - shown when not authenticated */}
@@ -222,12 +229,10 @@ function App() {
                     ):(
                         <div className="robot-list">
                             {robots.map((robot) => (
-                                <div 
+                                <div
                                     key={robot.id}
-                                    className={`robot-item ${expandedRobotId === robot.id ? 'expanded' : ''} ${highlightedRobotId === robot.id ? 'highlighted' : ''}`}                                   
-                                    //onClick={() => setExpandedRobotId(
-                                    //    expandedRobotId === robot.id ? null : robot.id
-                                    //)}
+                                    data-robot-id={robot.id}
+                                    className={`robot-item ${expandedRobotId === robot.id ? 'expanded' : ''} ${highlightedRobotId === robot.id ? 'highlighted' : ''}`}
                                     onClick={() => handleRobotClick(robot.id)}
                                 >
                                     {/* Always visible: Name and Status */}
