@@ -6,6 +6,7 @@ import { connectRedis, redisClient } from '../../../config/redis';
 import { db } from '../../../config/database';
 import { LEIPZIG_BOUNDS } from '../domain/robot';
 
+
 const app = createApp(db);
 
 // Generate a valid JWT for authenticated requests

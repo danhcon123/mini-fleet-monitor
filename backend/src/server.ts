@@ -52,7 +52,7 @@ async function startServer() {
         simulationService = new SimulationService(positionService)
 
         // Start simulation
-        await simulationService.start();
+        // await simulationService.start();
 
         // Start Express server
         console.log("Server.ts reached before listen, port =", config.port);

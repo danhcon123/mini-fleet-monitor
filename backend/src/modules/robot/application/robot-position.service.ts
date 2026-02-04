@@ -1,5 +1,5 @@
 import { logger } from "../../../shared/logger";
-import { Robot, LEIPZIG_BOUNDS } from "../domain/robot";
+import { Robot, LEIPZIG_BOUNDS } from '../domain/robot';
 import { IPositionRepository } from "../domain/robot-position.port";
 import { RedisCacheService } from "./redis-cache.service";
 import { redisClient } from "../../../config/redis";
@@ -49,7 +49,45 @@ export class PositionService{
             return null;
         }
 
-        // Generate new position
+        // Dont start a new move if already moving
+        if (robot.status === 'moving') return robot;
+
+        // Generate new destination ~5 km away in a random direction
+        const angle = Math.random() * 2 * Math.PI; // random direction
+        const distanceKm = 3 + Math.random() * 2; // 1-3km
+        const destLat = robot.lat + (distanceKm / 111) * Math.cos(angle); // 1° lat ≈ 111km
+        const destLon = robot.lon + (distanceKm / (111 * Math.cos(robot.lat * Math.PI / 180))) * Math.sin(angle);
+
+        // Clamp to Leipzig bounds
+        const finalLat = Math.max(LEIPZIG_BOUNDS.minLat, Math.min(LEIPZIG_BOUNDS.maxLat, destLat));
+        const finalLon = Math.max(LEIPZIG_BOUNDS.minLon, Math.min(LEIPZIG_BOUNDS.maxLon, destLon));
+        
+        const STEPS = 10;
+        const STEP_DELAY_MS = 200;
+
+        // Animate in steps
+        for (let i=1; i<= STEPS; i++) {
+            const progress = i / STEPS;
+            const lat = robot.lat + (finalLat - robot.lat) * progress;
+            const lon = robot.lon + (finalLon - robot.lon) * progress;
+            const status = i === STEPS ? 'idle' : 'moving'; // idle on last step
+
+            const updated = await this.positionRepository.updateRobotPosition(id, lat, lon, status);
+
+            if (updated)
+            {
+                await this.cacheService.invalidateCache();
+                await this.publishPositionUpdate(updated); // streams to frontend via WebSocket
+            }
+
+            // Wait between steps (except the last one)
+            if (i < STEPS) {
+                await new Promise(resolve => setTimeout(resolve, STEP_DELAY_MS));
+            }
+        }
+
+        return this.positionRepository.getRobotById(id);
+        /*
         const newPosition = this.generateNewPosition(robot.lat, robot.lon);
 
         // Update position in database
@@ -67,7 +105,7 @@ export class PositionService{
             // Publish to WebSocket via Redis Pub/Sub
             await this.publishPositionUpdate(updatedRobot);
         }
-        return updatedRobot;
+        return updatedRobot;*/
     }
 
     /**

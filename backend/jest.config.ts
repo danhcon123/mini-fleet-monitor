@@ -8,6 +8,7 @@ const config: Config = {
     moduleFileExtensions: ['ts', 'js', 'json'],
     // Longer timeout for integration tests hitting real DB/Redis
     testTimeout: 15000,
+    "setupFiles": ["dotenv/config"],
 };
 
 export default config;
