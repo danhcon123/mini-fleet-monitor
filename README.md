@@ -12,18 +12,23 @@ To run the application, you need Docker and Docker Compose installed.
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/danhcon123/mini-fleet-monitor.git
     cd mini-fleet-monitor
     ```
 
-2.  **Create environment files:**
-    - In the `backend` directory, copy `env_example` to `.env` and set the `JWT_SECRET`.
-    - In the `frontend` directory, copy `.env.example` to `.env`.
-
-3.  **Run the application:**
-    ```bash
-    docker-compose up --build -d
-    ```
+2. **Setup**
+  
+## Run the application with docker (🐋 Docker & Docker Compose prerequisites required)
+```bash
+docker-compose up --build -d
+```
+This starts all four services:  
+| Service    | URL                        |
+|------------|----------------------------|
+| Frontend   | http://localhost:5173       |
+| Backend    | http://localhost:3000       |
+| PostgreSQL | localhost:5432              |
+| Redis      | localhost:6379              |
 
 The application will be available at `http://localhost:5173`.  
 
@@ -32,10 +37,13 @@ Demo Credentials
 |---------------------|----------|
 | admin@example.com   | admin    |
 
-4. Terminate the application
-    ```bash
-   docker-compose down -d
-    ```
+Terminate the application:
+
+```bash
+docker-compose down -d
+```
+## Run the application locally
+
 
 ## Features
 
