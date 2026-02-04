@@ -1,7 +1,7 @@
 # ==== App ====
 NODE_ENV="development"
 PORT=8080
-APP_JWT_SECRET="some-long-random-secret-which-is-longer-than-16-characters"
+JWT_SECRET="some-long-random-secret-which-is-longer-than-16-characters"
 
 # ==== Database (Postgres) ====
 DATABASE_URL="postgres://admin:admin@localhost:5432/mini_fleet_db"
