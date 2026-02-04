@@ -185,7 +185,7 @@ function App() {
                                 <input
                                     id="email"
                                     type="email"
-                                    placeholder="admin@test.com"
+                                    placeholder="admin@example.com"
                                     required
                                 />
                             </div>
@@ -213,7 +213,7 @@ function App() {
                         </form>
 
                         <div className="demo-hint">
-                            <small>Demo: admin@test.com/ test123</small>
+                            <small>Demo: admin@example.com / admin</small>
                         </div>
                     </div>
                 </div>

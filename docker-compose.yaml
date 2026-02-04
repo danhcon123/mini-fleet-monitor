@@ -32,6 +32,7 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: development
+      PORT: 3000     
       DATABASE_URL: postgres://admin:admin@db:5432/mini_fleet_db
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-some-long-secret-key-change-in-production}
@@ -44,6 +45,22 @@ services:
       - ./backend/src:/app/src
       - ./backend/node_modules:/app/node_modules
     command: npm run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:3000
+      VITE_WS_URL: ws://localhost:3000
+      VITE_PORT: 5173
+    depends_on:
+      - api
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
 
 volumes:
   db_data:
