@@ -1,7 +1,7 @@
 -- Insert a test user
 -- Password hash for 'test123' with bcrypt
 INSERT INTO users (email, password_hash) VALUES 
-    ('admin@test.com', '$2b$10$rT8qY8QZ8qZ8qZ8qZ8qZ8.O8qZ8qZ8qZ8qZ8qZ8qZ8qZ8qZ8qZ8q'), -- password: token123
+    ('admin@test.com', '$2b$10$ifQfJAfhEbbXJngUGW0XUex6IdU0nlJhFCVu/VbRuvWl0XRxKxKC2'), -- password: token123
     ('admin@example.com','$2b$10$SWOqR7Cmn8EQGbNqqYs4IezH.yXiCqPoEfGmQwif2v5XxVr1OcyQ2'), -- password: admin
     ('admin_1@example.com','$2b$10$9ZS2zh24EsUMA686VIynK.4DLr/O6SvVVColdDR2RxUHPhbvs9uPK') -- password: admin
 ON CONFLICT (email) DO NOTHING;
