@@ -8,14 +8,14 @@ ON CONFLICT (email) DO NOTHING;
 
 -- Seed some vir-robots
 INSERT INTO robots (name, status, lat, lon) VALUES
-  ('Robot-Leipzig-Zentrum',      'idle',   51.339695, 12.373075),
-  ('Robot-Leipzig-Hbf',          'moving', 51.346405, 12.381041),
-  ('Robot-Leipzig-Plagwitz',     'idle',   51.330600, 12.334700),
-  ('Robot-Leipzig-Connewitz',    'moving', 51.314900, 12.381300),
-  ('Robot-Leipzig-Gohlis',       'idle',   51.361000, 12.379200),
-  ('Robot-Leipzig-Reudnitz',     'moving', 51.334900, 12.402600),
-  ('Robot-Leipzig-Suedvorstadt', 'idle',   51.322900, 12.373900),
-  ('Robot-Leipzig-Lindenthal',   'moving', 51.364900, 12.360400),
-  ('Robot-Leipzig-Schkeuditz',   'idle',   51.391900, 12.221600),
-  ('Robot-Leipzig-Lindenau',     'moving', 51.336200, 12.328900)
+  ('LF-001',    'idle',   51.339695, 12.373075),
+  ('LF-002',    'moving', 51.346405, 12.381041),
+  ('LF-003',    'idle',   51.330600, 12.334700),
+  ('LF-004',    'moving', 51.314900, 12.381300),
+  ('LF-005',    'idle',   51.361000, 12.379200),
+  ('LF-006',    'moving', 51.334900, 12.402600),
+  ('LF-007',    'idle',   51.322900, 12.373900),
+  ('LF-008',   'moving', 51.364900, 12.360400),
+  ('LF-009',   'idle',   51.391900, 12.221600),
+  ('LF-010',   'moving', 51.336200, 12.328900)
 ON CONFLICT DO NOTHING;

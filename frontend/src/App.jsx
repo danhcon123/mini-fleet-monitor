@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import MapComponent from "./components/Map";
 import { authAPI } from "./services/api";
 import { robotAPI } from "./services/api";
@@ -12,6 +12,8 @@ function App() {
     const [robots, setRobots] = useState([]);
     const [expandedRobotId, setExpandedRobotId] = useState(null);
     const [highlightedRobotId, setHighlightedRobotId] = useState(null); 
+    const [focusedRobot, setFocusedRobot] = useState(null);
+    const highlightTimerRef = useRef(null);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -117,7 +119,7 @@ function App() {
     };
 
     const handleRobotClick = (robotId) => {
-        console.log('Highlighting robot:', robotId);
+        console.log('Highlighting and focusing robot:', robotId);
 
         // Toggle expand
         setExpandedRobotId(expandedRobotId === robotId  ? null: robotId);
@@ -125,10 +127,23 @@ function App() {
         // Set highlight
         setHighlightedRobotId(robotId);
 
+        // Find the robot to get its coordinates
+        const robot = robots.find(r => r.id === robotId);
+        if (robot) {
+            // Trigger map focus
+            setFocusedRobot({id: robotId, lat: robot.lat, lon: robot.lon, timestamp: Date.now()})
+        }
+
+        // Clear any existing highlight timer
+        if (highlightTimerRef.current) {
+            clearTimeout(highlightTimerRef.current);
+        }
+
         // Auto-remove highlight after 3 seconds
-        setTimeout(() => {
+        highlightTimerRef.current = setTimeout(() => {
             setHighlightedRobotId(null);
-        }, 3000)
+            highlightTimerRef.current = null;
+        }, 3000);
     }
     return (
         <div className = "app">
@@ -145,6 +160,7 @@ function App() {
                 isBlurred={!isAuthenticated}
                 robots={robots}
                 highlightedRobotId={highlightedRobotId}
+                focusedRobot={focusedRobot}
             />
 
             {/** Login Overlay - shown when not authenticated */}

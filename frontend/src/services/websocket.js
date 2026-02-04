@@ -13,7 +13,7 @@ class WebSocketService {
             return;
         }
         
-        const wsUrl = `ws://localhost:3000/ws?token=${token}`;
+        const wsUrl = `ws://localhost:8080/ws?token=${token}`;
         console.log('Connecting to WebSocket:', wsUrl);
 
         this.ws = new WebSocket(wsUrl);
