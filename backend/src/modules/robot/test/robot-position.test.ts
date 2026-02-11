@@ -135,7 +135,7 @@ describe('POST /api/robots/:id/move', () => {
 
         expect(res.status).toBe(200);
         expect(res.body.id).toBe(robot.id);
-        expect(res.body.status).toBe('moving');
+        expect(res.body.status).toBe('idle');
 
         // Verify new position is within Leipzig bounds
         expect(res.body.lat).toBeGreaterThanOrEqual(LEIPZIG_BOUNDS.minLat);

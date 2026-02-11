@@ -16,6 +16,7 @@ function App() {
     const [movingRobotIds, setMovingRobotIds] = useState(new Set());
     const highlightTimerRef = useRef(null);
 
+    // Authenticates, store JWT, fetches robots, connectWS, set up live update
     const handleLogin = async (e) => {
         e.preventDefault();
         setErrorMessage(''); // Clear previous errors
@@ -97,6 +98,7 @@ function App() {
         }
     }
 
+    // fetch Robot list
     const fetchRobots = async () => {
         try {
             console.log('Fetching robot...');
